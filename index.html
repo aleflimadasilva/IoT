@@ -1,18 +1,3 @@
-<div id="temp">Carregando...</div>
-
-<script>
-setInterval(() => {
-  fetch("https://seu-servidor.com/api/temperatura")
-    .then(res => res.json())
-    .then(data => {
-      document.getElementById("temp").innerText = data.temp + " °C";
-    });
-}, 2000);
-</script>
-
-
-<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-
 <!DOCTYPE html>
 <html>
 <head>
