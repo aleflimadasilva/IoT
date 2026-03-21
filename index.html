@@ -1,25 +1,95 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
+  <meta charset="UTF-8">
   <title>Painel de Temperatura</title>
+
+  <!-- MQTT -->
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+  <!-- Chart.js (gráfico) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      background: #0f172a;
+      color: white;
+    }
+
+    h1 {
+      margin-top: 20px;
+    }
+
+    #temp {
+      font-size: 50px;
+      margin: 20px;
+      color: #38bdf8;
+    }
+
+    canvas {
+      max-width: 600px;
+      margin: auto;
+    }
+  </style>
 </head>
+
 <body>
 
-<h1>Temperatura em Tempo Real</h1>
-<h2 id="temp">-- °C</h2>
+<h1>🌡️ Temperatura em Tempo Real</h1>
+<div id="temp">-- °C</div>
 
-<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+<canvas id="grafico"></canvas>
 
 <script>
 const client = mqtt.connect('wss://broker.hivemq.com:8000/mqtt');
 
+let temperaturas = [];
+let labels = [];
+
+const ctx = document.getElementById('grafico').getContext('2d');
+
+const chart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: labels,
+    datasets: [{
+      label: 'Temperatura °C',
+      data: temperaturas,
+      borderWidth: 2
+    }]
+  },
+  options: {
+    scales: {
+      y: {
+        beginAtZero: false
+      }
+    }
+  }
+});
+
 client.on('connect', () => {
-  console.log('Conectado!');
+  console.log('Conectado ao broker');
   client.subscribe('casa/temperatura');
 });
 
 client.on('message', (topic, message) => {
-  document.getElementById("temp").innerText = message.toString() + " °C";
+  const temp = parseFloat(message.toString());
+
+  document.getElementById("temp").innerText = temp + " °C";
+
+  const now = new Date().toLocaleTimeString();
+
+  temperaturas.push(temp);
+  labels.push(now);
+
+  if (temperaturas.length > 10) {
+    temperaturas.shift();
+    labels.shift();
+  }
+
+  chart.update();
 });
 </script>
 
