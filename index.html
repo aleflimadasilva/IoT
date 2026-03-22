@@ -193,14 +193,17 @@ const chart = new Chart(document.getElementById("grafico"), {
 function updateGauge(temp) {
   const needle = document.getElementById("needle");
 
-  let angle = (temp / 50) * 180;
-  if (angle > 180) angle = 180;
-  if (angle < 0) angle = 0;
+  // Limites
+  if (temp < 0) temp = 0;
+  if (temp > 50) temp = 50;
+
+  // 🔥 Correção: inverter eixo
+  let angle = (temp / 50) * 180 - 90;
 
   needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
 
   /* ALERTA */
-  if (temp > 40) {
+  if (temp > 32) {
     statusEl.innerText = "🔥 ALTA TEMPERATURA";
     statusEl.classList.add("alert");
   } else {
