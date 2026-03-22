@@ -212,7 +212,7 @@ function updateGauge(temp) {
 
   needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
 
-  if (temp > 70) {
+  if (temp > 27) {
     statusEl.innerText = "🔥 ALTA TEMPERATURA";
     statusEl.classList.add("alert");
   } else {
