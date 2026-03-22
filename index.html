@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Painel IoT</title>
+<title>Painel IoT PRO</title>
 
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -29,40 +29,38 @@ body {
   padding: 20px;
   width: 350px;
   text-align: center;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
-}
-
-h2 {
-  margin-bottom: 10px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.6);
 }
 
 /* GAUGE */
 .gauge {
   position: relative;
-  width: 250px;
+  width: 260px;
   height: 150px;
   margin: auto;
 }
 
-.gauge svg {
+svg {
   width: 100%;
 }
 
+/* Ponteiro */
 .needle {
   width: 4px;
-  height: 90px;
+  height: 95px;
   background: white;
   position: absolute;
-  bottom: 20px;
+  bottom: 18px;
   left: 50%;
   transform-origin: center bottom;
   transform: translateX(-50%) rotate(0deg);
-  border-radius: 2px;
+  transition: transform 0.5s ease-out;
 }
 
+/* Valor */
 .center-value {
   position: absolute;
-  bottom: 10px;
+  bottom: 5px;
   width: 100%;
   text-align: center;
   font-size: 32px;
@@ -76,6 +74,17 @@ h2 {
   color: #94a3b8;
 }
 
+/* ALERTA */
+.alert {
+  animation: blink 1s infinite;
+  color: #ef4444;
+}
+
+@keyframes blink {
+  50% { opacity: 0.3; }
+}
+
+/* GRÁFICO */
 canvas {
   margin-top: 20px;
 }
@@ -92,10 +101,19 @@ canvas {
 
   <div class="gauge">
     <svg viewBox="0 0 200 100">
-      <path d="M10 100 A90 90 0 0 1 190 100"
-        stroke="#38bdf8"
-        stroke-width="12"
-        fill="none"/>
+
+      <!-- VERDE -->
+      <path d="M10 100 A90 90 0 0 1 90 20"
+        stroke="#22c55e" stroke-width="12" fill="none"/>
+
+      <!-- AMARELO -->
+      <path d="M90 20 A90 90 0 0 1 140 20"
+        stroke="#facc15" stroke-width="12" fill="none"/>
+
+      <!-- VERMELHO -->
+      <path d="M140 20 A90 90 0 0 1 190 100"
+        stroke="#ef4444" stroke-width="12" fill="none"/>
+
     </svg>
 
     <div class="needle" id="needle"></div>
@@ -162,19 +180,11 @@ const chart = new Chart(document.getElementById("grafico"), {
   },
   options: {
     plugins: {
-      legend: {
-        labels: {
-          color: "white"
-        }
-      }
+      legend: { labels: { color: "white" } }
     },
     scales: {
-      x: {
-        ticks: { color: "white" }
-      },
-      y: {
-        ticks: { color: "white" }
-      }
+      x: { ticks: { color: "white" } },
+      y: { ticks: { color: "white" } }
     }
   }
 });
@@ -188,6 +198,14 @@ function updateGauge(temp) {
   if (angle < 0) angle = 0;
 
   needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
+
+  /* ALERTA */
+  if (temp > 40) {
+    statusEl.innerText = "🔥 ALTA TEMPERATURA";
+    statusEl.classList.add("alert");
+  } else {
+    statusEl.classList.remove("alert");
+  }
 }
 
 /* RECEBER DADOS */
