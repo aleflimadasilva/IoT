@@ -22,7 +22,7 @@ body {
   gap: 20px;
   padding: 20px;
 }
-/*o objeto carde abaixo parametriza as caixas/topicos do painel*/
+/*o objeto card abaixo parametriza as caixas/topicos do painel(mas nao as posicoes)*/
 .card {
   background: #111827;
   border-radius: 12px;
@@ -152,7 +152,7 @@ canvas {
   <!-- umidade -->
 <div class="card">
   <h2> &#128167; Umidade</h2>
-  <div class="umidade">
+  <div class="container">   <!-- Esse ponto configura uma classe para posicao do card-->
   <canvas id="grafico"></canvas>
 </div>
 
