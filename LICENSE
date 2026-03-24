@@ -1,24 +1,83 @@
-This is free and unencumbered software released into the public domain.
+#include <WiFi.h>
+#include <PubSubClient.h>
 
-Anyone is free to copy, modify, publish, use, compile, sell, or
-distribute this software, either in source code form or as a compiled
-binary, for any purpose, commercial or non-commercial, and by any
-means.
+// 1. CONFIGURAÇÕES DE CONEXÃO
+const char* ssid = "NOME_DO_SEU_WIFI";
+const char* password = "SENHA_DO_WIFI";
+const char* mqtt_server = "28c03fa8cec54867b74cdb6592fcbc33.s1.eu.hivemq.cloud";
+const int mqtt_port = 8883; // Porta segura SSL/TLS (ou 1883 se não usar SSL)
 
-In jurisdictions that recognize copyright laws, the author or authors
-of this software dedicate any and all copyright interest in the
-software to the public domain. We make this dedication for the benefit
-of the public at large and to the detriment of our heirs and
-successors. We intend this dedication to be an overt act of
-relinquishment in perpetuity of all present and future rights to this
-software under copyright law.
+// 2. TÓPICOS (Devem ser iguais aos do HTML)
+const char* TOPIC_TEMP   = "alefsilva/temperatura";
+const char* TOPIC_SALA_CMD = "alefsilva/sala/comando";
+const char* TOPIC_SALA_STAT = "alefsilva/sala/status";
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
-ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
+// 3. PINOS DOS COMPONENTES
+const int PIN_RELE_SALA = 2; // Exemplo: pino da lâmpada da sala
+const int PIN_SENSOR = 4;    // Exemplo: pino do sensor de temperatura
 
-For more information, please refer to <https://unlicense.org>
+WiFiClientSecure espClient; // Use WiFiClient se não for SSL
+PubSubClient client(espClient);
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(PIN_RELE_SALA, OUTPUT);
+  
+  setup_wifi();
+  client.setServer(mqtt_server, mqtt_port);
+  client.setCallback(callback); // Define a função que "ouve" o painel
+}
+
+// FUNÇÃO QUE RECEBE COMANDOS DO PAINEL HTML
+void callback(char* topic, byte* payload, unsigned int length) {
+  String msg;
+  for (int i = 0; i < length; i++) msg += (char)payload[i];
+
+  Serial.print("Comando recebido: ");
+  Serial.println(msg);
+
+  // Se o comando for para a sala
+  if (String(topic) == TOPIC_SALA_CMD) {
+    if (msg == "ON") {
+      digitalWrite(PIN_RELE_SALA, HIGH); // Liga o relé
+      client.publish(TOPIC_SALA_STAT, "ON"); // CONFIRMA para o painel
+    } else {
+      digitalWrite(PIN_RELE_SALA, LOW); // Desliga o relé
+      client.publish(TOPIC_SALA_STAT, "OFF"); // CONFIRMA para o painel
+    }
+  }
+}
+
+void loop() {
+  if (!client.connected()) reconnect();
+  client.loop();
+
+  // ENVIO DE TEMPERATURA A CADA 5 SEGUNDOS
+  static unsigned long lastMsg = 0;
+  if (millis() - lastMsg > 5000) {
+    lastMsg = millis();
+    float temp = 25.5; // Aqui você lê o seu sensor (ex: dht.readTemperature())
+    char tempString[8];
+    dtostrf(temp, 1, 2, tempString);
+    
+    client.publish(TOPIC_TEMP, tempString); // Envia para o Gauge do painel
+  }
+}
+
+// --- FUNÇÕES DE CONEXÃO ---
+void setup_wifi() {
+  delay(10);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) delay(500);
+}
+
+void reconnect() {
+  while (!client.connected()) {
+    if (client.connect("ESP32_Alef", "AlefSilva12", "@Alef123")) {
+      client.subscribe(TOPIC_SALA_CMD); // ESCUTA o tópico de comando
+      // Adicione aqui o subscribe do quarto também
+    } else {
+      delay(5000);
+    }
+  }
+}
