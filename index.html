@@ -2,182 +2,239 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Painel IoT 1.1 | Alef</title>
-    <script src="https://unpkg.com"></script>
-    <script src="https://cdn.jsdelivr.net"></script>
+    <title>Painel IoT 1.2 | Alef</title>
+
+    <!-- IMPORTS CORRETOS -->
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        /* Estilos visuais: Cores, tamanhos e alinhamentos */
         body { margin: 0; font-family: Arial, sans-serif; background: #0a0000; color: white; }
         .container { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; padding: 20px; }
-        
+
         .card { 
             background: #111827; border-radius: 12px; padding: 20px; width: 320px; 
             text-align: center; box-shadow: 0 0 15px rgba(0,0,0,0.6); 
             display: flex; flex-direction: column; justify-content: space-between;
         }
 
-        /* Estilo dos botões Ligar/Desligar */
         .control-group { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
-        .btn-on { background: #22c55e; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; flex: 1; }
-        .btn-off { background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; flex: 1; }
-        
-        /* Estilo do texto de status (ON/OFF) */
-        .lamp-status { font-size: 18px; font-weight: bold; margin: 15px 0; padding: 5px; border-radius: 5px; }
-        .status-on { color: #22c55e; text-shadow: 0 0 10px #22c55e; } /* Verde brilhante se ligado */
-        .status-off { color: #94a3b8; } /* Cinza se desligado */
 
-        /* Gauge e Gráfico */
+        .btn-on { background: #22c55e; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; flex: 1; }
+        .btn-off { background: #ef4444; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; flex: 1; }
+
+        .lamp-status { font-size: 18px; font-weight: bold; margin: 15px 0; padding: 5px; border-radius: 5px; }
+        .status-on { color: #22c55e; text-shadow: 0 0 10px #22c55e; }
+        .status-off { color: #94a3b8; }
+
         .gauge { position: relative; width: 200px; height: 120px; margin: auto; }
-        .needle { width: 3px; height: 70px; background: #fff; position: absolute; bottom: 15px; left: 50%; transform-origin: center bottom; transform: translateX(-50%) rotate(-90deg); transition: 0.4s; }
+
+        .needle {
+            width: 3px;
+            height: 70px;
+            background: #fff;
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform-origin: center bottom;
+            transform: translateX(-50%) rotate(-90deg);
+            transition: transform 0.6s ease-in-out;
+        }
+
         canvas { max-height: 150px; }
     </style>
 </head>
+
 <body>
 
 <div class="container">
-    <!-- Card de Temperatura -->
+
+    <!-- TEMPERATURA -->
     <div class="card">
         <h2>🌡️ Temperatura</h2>
+
         <div class="gauge">
-            <svg viewBox="0 0 200 100">
-                <path d="M 10 100 A 90 90 0 0 1 190 100" stroke="#1f2937" stroke-width="12" fill="none"/>
-                <path d="M 10 100 A 90 90 0 0 1 100 10" stroke="#22c55e" stroke-width="12" fill="none"/>
-                <path d="M 100 10 A 90 90 0 0 1 190 100" stroke="#ef4444" stroke-width="12" fill="none"/>
+            <svg viewBox="0 0 200 120">
+                <path d="M 20 100 A 80 80 0 0 1 180 100" stroke="#1f2937" stroke-width="12" fill="none"/>
+                <path d="M 20 100 A 80 80 0 0 1 100 20" stroke="#22c55e" stroke-width="12" fill="none"/>
+                <path d="M 100 20 A 80 80 0 0 1 180 100" stroke="#ef4444" stroke-width="12" fill="none"/>
             </svg>
+
             <div class="needle" id="needle"></div>
-            <div class="center-value" id="temp" style="font-size: 28px; font-weight: bold;">-- °C</div>
+            <div id="temp" style="font-size: 28px; font-weight: bold;">-- °C</div>
         </div>
-        <div class="status" id="status-mqtt">Conectando ao Broker...</div>
+
+        <div id="status-mqtt">Conectando...</div>
     </div>
 
-    <!-- Card de Gráfico com Download -->
+    <!-- GRÁFICO -->
     <div class="card">
         <h2>📈 Histórico</h2>
         <canvas id="grafico"></canvas>
-        <button onclick="baixarHistorico()" style="margin-top:10px; background:#38bdf8; border:none; padding:8px; border-radius:5px; font-weight:bold; cursor:pointer;">📥 Baixar CSV</button>
+
+        <button onclick="baixarHistorico()" style="margin-top:10px; background:#38bdf8; border:none; padding:8px; border-radius:5px; font-weight:bold; cursor:pointer;">
+            📥 Baixar CSV
+        </button>
     </div>
 
-    <!-- Card Controle Sala -->
+    <!-- SALA -->
     <div class="card">
         <h2>🛋️ Lâmpada Sala</h2>
-        <!-- O ID 'status-sala' será alterado pelo JS quando o ESP32 confirmar o estado -->
         <div id="status-sala" class="lamp-status status-off">DESLIGADA</div>
+
         <div class="control-group">
-            <button class="btn-on" onclick="enviarComando('sala', 'ON')">LIGAR</button>
-            <button class="btn-off" onclick="enviarComando('sala', 'OFF')">DESLIGAR</button>
+            <button class="btn-on" onclick="enviarComando('sala','ON')">LIGAR</button>
+            <button class="btn-off" onclick="enviarComando('sala','OFF')">DESLIGAR</button>
         </div>
     </div>
 
-    <!-- Card Controle Quarto -->
+    <!-- QUARTO -->
     <div class="card">
         <h2>🛏️ Lâmpada Quarto</h2>
         <div id="status-quarto" class="lamp-status status-off">DESLIGADA</div>
+
         <div class="control-group">
-            <button class="btn-on" onclick="enviarComando('quarto', 'ON')">LIGAR</button>
-            <button class="btn-off" onclick="enviarComando('quarto', 'OFF')">DESLIGAR</button>
+            <button class="btn-on" onclick="enviarComando('quarto','ON')">LIGAR</button>
+            <button class="btn-off" onclick="enviarComando('quarto','OFF')">DESLIGAR</button>
         </div>
     </div>
+
 </div>
 
 <script>
-    // 1. CONFIGURAÇÕES MQTT: Mesmos dados que você usará no código do ESP32
-    const CONFIG = {
-        host: "wss://28c03fa8cec54867b74cdb6592fcbc33.s1.eu.hivemq.cloud:8884/mqtt",
-        user: "AlefSilva12",
-        pass: "@Alef123",
-        topics: {
-            temp: "alefsilva/temperatura",       // ESP32 publica aqui
-            sala_cmd: "alefsilva/sala/comando",  // Painel publica / ESP32 escuta
-            sala_stat: "alefsilva/sala/status",  // ESP32 publica confirmação aqui
-            quarto_cmd: "alefsilva/quarto/comando",
-            quarto_stat: "alefsilva/quarto/status"
+const CONFIG = {
+    host: "wss://28c03fa8cec54867b74cdb6592fcbc33.s1.eu.hivemq.cloud:8884/mqtt",
+    user: "AlefSilva12",
+    pass: "@Alef123",
+    topics: {
+        temp: "alefsilva/temperatura",
+        sala_cmd: "alefsilva/sala/comando",
+        sala_stat: "alefsilva/sala/status",
+        quarto_cmd: "alefsilva/quarto/comando",
+        quarto_stat: "alefsilva/quarto/status"
+    }
+};
+
+const client = mqtt.connect(CONFIG.host, {
+    username: CONFIG.user,
+    password: CONFIG.pass
+});
+
+let logsParaCSV = [];
+
+client.on("connect", () => {
+    document.getElementById("status-mqtt").innerText = "🟢 Online";
+    client.subscribe([
+        CONFIG.topics.temp,
+        CONFIG.topics.sala_stat,
+        CONFIG.topics.quarto_stat
+    ]);
+});
+
+client.on("reconnect", () => {
+    document.getElementById("status-mqtt").innerText = "🟡 Reconectando...";
+});
+
+client.on("offline", () => {
+    document.getElementById("status-mqtt").innerText = "🔴 Offline";
+});
+
+function enviarComando(dispositivo, acao) {
+    const topico = dispositivo === 'sala'
+        ? CONFIG.topics.sala_cmd
+        : CONFIG.topics.quarto_cmd;
+
+    client.publish(topico, acao);
+}
+
+client.on("message", (topic, message) => {
+    const msg = message.toString();
+
+    if (topic === CONFIG.topics.temp) {
+        processarTemperatura(parseFloat(msg));
+    } else if (topic === CONFIG.topics.sala_stat) {
+        atualizarLampada('sala', msg);
+    } else if (topic === CONFIG.topics.quarto_stat) {
+        atualizarLampada('quarto', msg);
+    }
+});
+
+function atualizarLampada(local, estado) {
+    const el = document.getElementById(`status-${local}`);
+
+    if (estado === "ON") {
+        el.innerText = "LIGADA";
+        el.className = "lamp-status status-on";
+    } else {
+        el.innerText = "DESLIGADA";
+        el.className = "lamp-status status-off";
+    }
+}
+
+const chart = new Chart(document.getElementById('grafico'), {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Temperatura',
+            data: [],
+            borderColor: '#38bdf8',
+            tension: 0
+        }]
+    },
+    options: {
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { ticks: { color: '#fff' } },
+            x: { ticks: { color: '#fff' } }
         }
-    };
+    }
+});
 
-    // 2. CONEXÃO: Inicia a comunicação com o servidor
-    const client = mqtt.connect(CONFIG.host, { username: CONFIG.user, password: CONFIG.pass });
-    let logsParaCSV = []; // Memória temporária para salvar os dados lidos
+function processarTemperatura(valor) {
+    if (isNaN(valor)) return;
 
-    client.on("connect", () => {
-        document.getElementById("status-mqtt").innerText = "🟢 Online";
-        // O painel precisa "ouvir" a temperatura e os estados confirmados das lâmpadas
-        client.subscribe([CONFIG.topics.temp, CONFIG.topics.sala_stat, CONFIG.topics.quarto_stat]);
+    // Limite
+    valor = Math.max(-20, Math.min(100, valor));
+
+    document.getElementById("temp").innerText = valor.toFixed(1) + " °C";
+
+    let angulo = ((valor + 20) / 120) * 180 - 90;
+    document.getElementById("needle").style.transform =
+        `translateX(-50%) rotate(${angulo}deg)`;
+
+    const hora = new Date().toLocaleTimeString();
+
+    chart.data.labels.push(hora);
+    chart.data.datasets[0].data.push(valor);
+
+    if (chart.data.labels.length > 10) {
+        chart.data.labels.shift();
+        chart.data.datasets[0].data.shift();
+    }
+
+    chart.update();
+
+    logsParaCSV.push({
+        data: new Date().toLocaleDateString(),
+        hora,
+        valor
     });
+}
 
-    // 3. FUNÇÃO DE ENVIO: Quando você clica no botão, o comando vai para o Broker
-    function enviarComando(dispositivo, acao) {
-        const topico = dispositivo === 'sala' ? CONFIG.topics.sala_cmd : CONFIG.topics.quarto_cmd;
-        client.publish(topico, acao); 
-        console.log(`Enviado para ${topico}: ${acao}`);
-    }
+function baixarHistorico() {
+    let conteudo = "Data,Hora,Temperatura\n" +
+        logsParaCSV.map(l => `${l.data},${l.hora},${l.valor}`).join("\n");
 
-    // 4. FUNÇÃO DE RECEBIMENTO: O que acontece quando chega uma mensagem do MQTT
-    client.on("message", (topic, message) => {
-        const msg = message.toString();
+    const blob = new Blob([conteudo], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
 
-        // Se a mensagem for de temperatura, atualiza o Gauge e o Gráfico
-        if (topic === CONFIG.topics.temp) {
-            processarTemperatura(parseFloat(msg));
-        } 
-        // Se a mensagem for status da sala, muda a cor do card da sala
-        else if (topic === CONFIG.topics.sala_stat) {
-            atualizarInterfaceLampada('sala', msg);
-        } 
-        // Se for status do quarto, muda a cor do card do quarto
-        else if (topic === CONFIG.topics.quarto_stat) {
-            atualizarInterfaceLampada('quarto', msg);
-        }
-    });
-
-    // 5. ATUALIZAÇÃO VISUAL: Muda cores e textos na tela
-    function atualizarInterfaceLampada(local, estado) {
-        const elemento = document.getElementById(`status-${local}`);
-        if (estado === "ON") {
-            elemento.innerText = "LIGADA";
-            elemento.className = "lamp-status status-on";
-        } else {
-            elemento.innerText = "DESLIGADA";
-            elemento.className = "lamp-status status-off";
-        }
-    }
-
-    // 6. LÓGICA DE GRÁFICO E GAUGE
-    const chart = new Chart(document.getElementById('grafico'), {
-        type: 'line',
-        data: { labels: [], datasets: [{ label: '°C', data: [], borderColor: '#38bdf8', tension: 0.4 }] },
-        options: { plugins: { legend: { display: false } }, scales: { y: { ticks: { color: '#fff' } } } }
-    });
-
-    function processarTemperatura(valor) {
-        if(isNaN(valor)) return;
-        document.getElementById("temp").innerText = valor.toFixed(1) + " °C";
-        
-        // Move o ponteiro (Gira de -90 a 90 graus)
-        let angulo = ((valor + 20) / 120) * 180 - 90;
-        document.getElementById("needle").style.transform = `translateX(-50%) rotate(${angulo}deg)`;
-
-        // Adiciona ao gráfico
-        const hora = new Date().toLocaleTimeString();
-        chart.data.labels.push(hora);
-        chart.data.datasets[0].data.push(valor);
-        if(chart.data.labels.length > 10) { chart.data.labels.shift(); chart.data.datasets[0].data.shift(); }
-        chart.update();
-
-        // Salva na lista do CSV
-        logsParaCSV.push({ data: new Date().toLocaleDateString(), hora, valor });
-    }
-
-    // 7. DOWNLOAD CSV: Transforma a lista de logs em um arquivo baixável
-    function baixarHistorico() {
-        let conteudo = "Data,Hora,Temperatura\n" + logsParaCSV.map(l => `${l.data},${l.hora},${l.valor}`).join("\n");
-        const blob = new Blob([conteudo], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'historico_iot.csv';
-        a.click();
-    }
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'historico_iot.csv';
+    a.click();
+}
 </script>
+
 </body>
 </html>
