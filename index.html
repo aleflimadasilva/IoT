@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Painel IoT 1.0 | Alef</title>
+    <title>Painel IoT 2.0 | Alef</title>
 
     <script src="https://unpkg.com"></script>
     <script src="https://cdn.jsdelivr.net"></script>
@@ -43,11 +43,8 @@
             margin: auto;
         }
         
-        svg {
-            width: 100%;
-        }
+        svg { width: 100%; }
 
-        /* Ponteiro */
         .needle {
             width: 4px;
             height: 95px;
@@ -62,7 +59,6 @@
             box-shadow: 0 0 10px rgba(56,189,248,0.7);
         }
 
-        /* Valor Centralizado */
         .center-value {
             font-size: 32px;
             font-weight: bold;
@@ -75,28 +71,35 @@
             width: 100%;
         }
 
-        /* STATUS */
         .status {
             margin-top: 15px;
             font-size: 14px;
             color: #94a3b8;
         }
 
-        /* ALERTA */
         .alert {
             animation: blink 1s infinite;
             color: #ef4444;
         }
 
-        @keyframes blink {
-            50% { opacity: 0.3; }
+        @keyframes blink { 50% { opacity: 0.3; } }
+
+        canvas { margin-top: 20px; max-height: 200px; }
+
+        /* BOTÃO DOWNLOAD */
+        .btn-download {
+            margin-top: 15px;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 8px;
+            border: none;
+            background: #38bdf8;
+            color: #000;
+            font-weight: bold;
+            transition: 0.3s;
         }
 
-        /* GRÁFICO */
-        canvas {
-            margin-top: 20px;
-            max-height: 200px;
-        }
+        .btn-download:hover { background: #7dd3fc; transform: scale(1.05); }
     </style>
 </head>
 
@@ -120,14 +123,15 @@
             <div class="status" id="status">Conectando...</div>
         </div>
 
-        <!-- CARD 2: GRÁFICO -->
+        <!-- CARD 2: GRÁFICO + DOWNLOAD -->
         <div class="card">
             <h2>📈 Linha do Tempo</h2>
             <canvas id="grafico"></canvas>
-            <div class="status">Histórico em tempo real</div>
+            <button class="btn-download" onclick="baixarHistorico()">📥 Baixar CSV</button>
+            <div class="status" id="count-status">0 leituras salvas</div>
         </div>
 
-        <!-- CARD 3: UMIDADE (Corrigido para dentro do container) -->
+        <!-- CARD 3: UMIDADE -->
         <div class="card">
             <h2>💧 Umidade</h2>
             <div style="margin: auto;">
@@ -144,7 +148,6 @@
             username: "AlefSilva12",
             password: "@Alef123",
             topic: "alefsilva/temperatura"
-            // Caso tenha um tópico de umidade, adicione aqui: topicUmidade: "alefsilva/umidade"
         };
 
         const client = mqtt.connect(MQTT_CONFIG.host, {
@@ -153,32 +156,28 @@
             reconnectPeriod: 2000
         });
 
+        // ARMAZENAMENTO PARA DOWNLOAD
+        let historicoCSV = [];
+
         const statusEl = document.getElementById("status");
+        const countEl = document.getElementById("count-status");
 
         client.on("connect", () => {
             statusEl.innerText = "🟢 Conectado";
             client.subscribe(MQTT_CONFIG.topic);
         });
 
-        client.on("reconnect", () => {
-            statusEl.innerText = "🟡 Reconectando...";
-        });
-
-        client.on("error", () => {
-            statusEl.innerText = "🔴 Erro";
-        });
-
-        /* GRÁFICO */
-        let temperaturas = [];
-        let labels = [];
+        /* CONFIGURAÇÃO DO GRÁFICO */
+        let dadosGrafico = [];
+        let labelsGrafico = [];
 
         const chart = new Chart(document.getElementById("grafico"), {
             type: "line",
             data: {
-                labels: labels,
+                labels: labelsGrafico,
                 datasets: [{
                     label: "Temperatura",
-                    data: temperaturas,
+                    data: dadosGrafico,
                     borderColor: "#38bdf8",
                     backgroundColor: "rgba(56,189,248,0.1)",
                     borderWidth: 2,
@@ -187,21 +186,18 @@
                 }]
             },
             options: {
-                plugins: { legend: { labels: { color: "white" } } },
+                plugins: { legend: { display: false } },
                 scales: {
-                    x: { ticks: { color: "white" } },
-                    y: { ticks: { color: "white" } }
+                    x: { ticks: { color: "#94a3b8" } },
+                    y: { ticks: { color: "#94a3b8" } }
                 }
             }
         });
 
-        /* ATUALIZAR GAUGE */
+        /* FUNÇÃO GAUGE */
         function updateGauge(temp) {
             const needle = document.getElementById("needle");
-            if (temp < -20) temp = -20;
-            if (temp > 100) temp = 100;
-
-            let normalized = (temp + 20) / 120;
+            let normalized = (Math.min(Math.max(temp, -20), 100) + 20) / 120;
             let angle = normalized * 180 - 90;
             needle.style.transform = `translateX(-50%) rotate(${angle}deg)`;
 
@@ -213,28 +209,52 @@
             }
         }
 
-        /* RECEBER DADOS MQTT */
+        /* LOGICA DE DOWNLOAD */
+        function baixarHistorico() {
+            if (historicoCSV.length === 0) return alert("Sem dados!");
+            
+            let csvContent = "data:text/csv;charset=utf-8,Data,Hora,Valor\n";
+            historicoCSV.forEach(r => csvContent += `${r.data},${r.hora},${r.valor}\n`);
+
+            const link = document.createElement("a");
+            link.setAttribute("href", encodeURI(csvContent));
+            link.setAttribute("download", "log_sensores.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        /* RECEBIMENTO DE DADOS */
         client.on("message", (topic, message) => {
-            const dado = parseFloat(message.toString());
-            if (isNaN(dado)) return;
+            const valor = parseFloat(message.toString());
+            if (isNaN(valor)) return;
 
-            // Se for o tópico de temperatura
             if (topic === MQTT_CONFIG.topic) {
-                document.getElementById("temp").innerText = dado.toFixed(2) + " °C";
-                updateGauge(dado);
+                const agora = new Date();
+                const horaStr = agora.toLocaleTimeString();
 
-                const now = new Date().toLocaleTimeString();
-                temperaturas.push(dado);
-                labels.push(now);
+                // Salva no histórico completo
+                historicoCSV.push({
+                    data: agora.toLocaleDateString(),
+                    hora: horaStr,
+                    valor: valor
+                });
+                countEl.innerText = `${historicoCSV.length} leituras salvas`;
 
-                if (temperaturas.length > 20) {
-                    temperaturas.shift();
-                    labels.shift();
+                // Atualiza visual
+                document.getElementById("temp").innerText = valor.toFixed(2) + " °C";
+                updateGauge(valor);
+
+                // Atualiza gráfico (limite de 20 pontos)
+                dadosGrafico.push(valor);
+                labelsGrafico.push(horaStr);
+                if (dadosGrafico.length > 20) {
+                    dadosGrafico.shift();
+                    labelsGrafico.shift();
                 }
                 chart.update();
             }
         });
     </script>
-
 </body>
 </html>
