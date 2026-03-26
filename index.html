@@ -14,8 +14,20 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: #0a0000; /* fundo escuro */
+    background: #0a0000;
     color: white;
+}
+
+/* ANIMAÇÃO DE ALERTA */
+@keyframes piscar-alerta {
+    0% { background: #111827; }
+    50% { background: #7f1d1d; }
+    100% { background: #111827; }
+}
+
+.alerta-ativo {
+    animation: piscar-alerta 0.8s infinite;
+    border: 2px solid #ef4444 !important;
 }
 
 /* =======================
@@ -30,8 +42,8 @@ body {
 }
 
 .app-card {
-    width: 180px;  /* Aumentado de 140px */
-    height: 180px; /* Aumentado de 140px */
+    width: 180px; 
+    height: 180px;
     background: #111827;
     border-radius: 25px;
     display: flex;
@@ -40,37 +52,17 @@ body {
     align-items: center;
     cursor: pointer;
     transition: transform 0.2s;
-    font-size: 1.2rem; /* Aumenta o texto */
 }
 
-.app-card:hover {
-    transform: scale(1.05);
-}
-
-.app-card span {
-    margin-top: 15px;
-}
-
-/* Ícone dentro do card */
-.app-card {
-    font-size: 40px; /* Aumenta o emoji */
-}
-
-.app-card span {
-    font-size: 18px; /* Ajusta o texto abaixo do emoji */
-}
+.app-card:hover { transform: scale(1.05); }
+.app-card { font-size: 40px; }
+.app-card span { margin-top: 15px; font-size: 18px; }
 
 /* =======================
    TELAS INTERNAS
 ======================= */
-.tela {
-    display: none;
-    padding: 20px;
-}
-
-.tela.active {
-    display: block;
-}
+.tela { display: none; padding: 20px; }
+.tela.active { display: block; }
 
 .voltar {
     margin-bottom: 20px;
@@ -82,24 +74,13 @@ body {
     border-radius: 10px;
     transition: all 0.3s;
 }
-
-.voltar:hover {
-    background: rgba(56, 189, 248, 0.1);
-}
+.voltar:hover { background: rgba(56, 189, 248, 0.1); }
 
 /* =======================
    CONTAINER DE CARDS
 ======================= */
-.container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    justify-content: center;
-}
+.container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
 
-/* =======================
-   CARD INDIVIDUAL
-======================= */
 .card {
     background: #111827;
     padding: 20px;
@@ -107,86 +88,30 @@ body {
     width: 320px;
     display: flex;
     flex-direction: column;
-    align-items: center;      
+    align-items: center;
+    transition: background 0.3s;
 }
 
 /* BOTÕES LIGAR/DESLIGAR */
-.control-group {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-}
+.control-group { display: flex; gap: 10px; margin-top: 10px; }
+.btn-on { background: #22c55e; border: none; padding: 10px; border-radius: 8px; cursor: pointer; flex: 1; }
+.btn-off { background: #ef4444; border: none; padding: 10px; border-radius: 8px; cursor: pointer; flex: 1; }
 
-.btn-on {
-    background: #22c55e;
-    border: none;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    flex: 1;
-}
-
-.btn-off {
-    background: #ef4444;
-    border: none;
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    flex: 1;
-}
-
-/* STATUS DE LÂMPADAS */
-.lamp-status {
-    margin: 10px;
-    font-weight: bold;
-}
-
+.lamp-status { margin: 10px; font-weight: bold; }
 .status-on { color: #22c55e; }
 .status-off { color: #94a3b8; }
 
-/* =======================
-   GAUGE TEMPERATURA CENTRALIZADO
-======================= */
-.gauge {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 200px;
-    margin: 20px auto 0 auto;
-}
-
-.gauge-visual {
-    position: relative;
-    width: 200px;
-    height: 120px; 
-}
-
+/* GAUGE */
+.gauge { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 200px; margin: 20px auto 0 auto; }
+.gauge-visual { position: relative; width: 200px; height: 120px; }
 .needle {
-    width: 3px;
-    height: 70px;
-    background: #fff;
-    position: absolute;
-    bottom: 15px;
-    left: 50%;
-    transform-origin: center bottom;
-    transform: translateX(-50%) rotate(-90deg);
-    transition: transform 0.6s ease-in-out;
+    width: 3px; height: 70px; background: #fff; position: absolute;
+    bottom: 15px; left: 50%; transform-origin: center bottom;
+    transform: translateX(-50%) rotate(-90deg); transition: transform 0.6s ease-in-out;
 }
-
-#gauge-temp {
-    margin-top: 10px;
-    font-size: 22px;
-    font-weight: bold;
-}
-
-.status-inline {
-    font-weight: bold;
-    font-size: 16px;
-}
-
+#gauge-temp { margin-top: 10px; font-size: 22px; font-weight: bold; }
+.status-inline { font-weight: bold; font-size: 16px; }
 canvas { max-height: 150px; }
-
 </style>
 </head>
 
@@ -205,7 +130,7 @@ canvas { max-height: 150px; }
 <div id="geral" class="tela">
     <div class="voltar" onclick="voltar()">⬅ Voltar</div>
     <div class="container">
-        <div class="card">
+        <div class="card" id="card-temp">
             <div style="display:flex; justify-content: space-between; align-items: center; width:100%; margin-bottom:10px;">
                 <h3 style="margin:0;">🌡️ Temperatura</h3>
                 <div id="status-mqtt" class="status-inline">Conectando...</div>
@@ -223,6 +148,7 @@ canvas { max-height: 150px; }
                 <div id="gauge-temp">-- °C</div>
             </div>
         </div>
+
         <div class="card">
             <h3>📈 Histórico</h3>
             <canvas id="grafico"></canvas>
@@ -231,47 +157,9 @@ canvas { max-height: 150px; }
     </div>
 </div>
 
-<div id="sala" class="tela">
-    <div class="voltar" onclick="voltar()">⬅ Voltar</div>
-    <div class="container">
-        <div class="card">
-            <h3>🛋️ Luz Sala</h3>
-            <div id="status-sala" class="lamp-status status-off">DESLIGADA</div>
-            <div class="control-group">
-                <button class="btn-on" onclick="enviarComando('sala','ON')">LIGAR</button>
-                <button class="btn-off" onclick="enviarComando('sala','OFF')">DESLIGAR</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="quarto" class="tela">
-    <div class="voltar" onclick="voltar()">⬅ Voltar</div>
-    <div class="container">
-        <div class="card">
-            <h3>🛏️ Luz Quarto</h3>
-            <div id="status-quarto" class="lamp-status status-off">DESLIGADA</div>
-            <div class="control-group">
-                <button class="btn-on" onclick="enviarComando('quarto','ON')">LIGAR</button>
-                <button class="btn-off" onclick="enviarComando('quarto','OFF')">DESLIGAR</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="banheiro" class="tela">
-    <div class="voltar" onclick="voltar()">⬅ Voltar</div>
-    <div class="container">
-        <div class="card">
-            <h3>🚿 Luz Banheiro</h3>
-            <div id="status-banheiro" class="lamp-status status-off">DESLIGADA</div>
-            <div class="control-group">
-                <button class="btn-on" onclick="enviarComando('banheiro','ON')">LIGAR</button>
-                <button class="btn-off" onclick="enviarComando('banheiro','OFF')">DESLIGAR</button>
-            </div>
-        </div>
-    </div>
-</div>
+<div id="sala" class="tela"><div class="voltar" onclick="voltar()">⬅ Voltar</div><div class="container"><div class="card"><h3>🛋️ Luz Sala</h3><div id="status-sala" class="lamp-status status-off">DESLIGADA</div><div class="control-group"><button class="btn-on" onclick="enviarComando('sala','ON')">LIGAR</button><button class="btn-off" onclick="enviarComando('sala','OFF')">DESLIGAR</button></div></div></div></div>
+<div id="quarto" class="tela"><div class="voltar" onclick="voltar()">⬅ Voltar</div><div class="container"><div class="card"><h3>🛏️ Luz Quarto</h3><div id="status-quarto" class="lamp-status status-off">DESLIGADA</div><div class="control-group"><button class="btn-on" onclick="enviarComando('quarto','ON')">LIGAR</button><button class="btn-off" onclick="enviarComando('quarto','OFF')">DESLIGAR</button></div></div></div></div>
+<div id="banheiro" class="tela"><div class="voltar" onclick="voltar()">⬅ Voltar</div><div class="container"><div class="card"><h3>🚿 Luz Banheiro</h3><div id="status-banheiro" class="lamp-status status-off">DESLIGADA</div><div class="control-group"><button class="btn-on" onclick="enviarComando('banheiro','ON')">LIGAR</button><button class="btn-off" onclick="enviarComando('banheiro','OFF')">DESLIGAR</button></div></div></div></div>
 
 <script>
 function abrirTela(id) {
@@ -306,9 +194,10 @@ client.on("connect", () => {
 client.on("message", (topic, message) => {
     const msg = message.toString();
     if (topic === CONFIG.topics.temp) processarTemperatura(parseFloat(msg));
-    if (topic === CONFIG.topics.sala_stat) atualizarLampada('sala', msg);
-    if (topic === CONFIG.topics.quarto_stat) atualizarLampada('quarto', msg);
-    if (topic === CONFIG.topics.banheiro_stat) atualizarLampada('banheiro', msg);
+    if (topic.includes("status")) {
+        const local = topic.split('/')[1];
+        atualizarLampada(local, msg);
+    }
 });
 
 function enviarComando(dispositivo, acao) {
@@ -324,23 +213,38 @@ function atualizarLampada(local, estado) {
 
 const chart = new Chart(document.getElementById('grafico'), {
     type: 'line',
-    data: { labels: [], datasets: [{ data: [], borderColor: '#38bdf8' }] },
+    data: { labels: [], datasets: [{ data: [], borderColor: '#38bdf8', tension: 0.3 }] },
     options: { plugins: { legend: { display: false } } }
 });
 
 function processarTemperatura(valor) {
     if (isNaN(valor)) return;
     valor = Math.max(-20, Math.min(100, valor));
-    document.getElementById("gauge-temp").innerText = valor.toFixed(1) + " °C";
+    
+    const displayTemp = document.getElementById("gauge-temp");
+    const cardTemp = document.getElementById("card-temp");
+    const statusMqtt = document.getElementById("status-mqtt");
+    
+    displayTemp.innerText = valor.toFixed(1) + " °C";
+
+    // LÓGICA DE ALERTA > 30 GRAUS
+    if (valor > 30) {
+        cardTemp.classList.add("alerta-ativo");
+        statusMqtt.innerText = "⚠️ ALERTA";
+        statusMqtt.style.color = "#ef4444";
+    } else {
+        cardTemp.classList.remove("alerta-ativo");
+        statusMqtt.innerText = "🟢 Online";
+        statusMqtt.style.color = "white";
+    }
+
     let angulo = ((valor + 20) / 120) * 180 - 90;
     document.getElementById("needle").style.transform = `translateX(-50%) rotate(${angulo}deg)`;
+
     const hora = new Date().toLocaleTimeString();
     chart.data.labels.push(hora);
     chart.data.datasets[0].data.push(valor);
-    if (chart.data.labels.length > 10) {
-        chart.data.labels.shift();
-        chart.data.datasets[0].data.shift();
-    }
+    if (chart.data.labels.length > 10) { chart.data.labels.shift(); chart.data.datasets[0].data.shift(); }
     chart.update();
     logsParaCSV.push({ data: new Date().toLocaleDateString(), hora, valor });
 }
@@ -350,9 +254,7 @@ function baixarHistorico() {
     const blob = new Blob([conteudo], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
-    a.download = 'historico_iot.csv';
-    a.click();
+    a.href = url; a.download = 'historico_iot.csv'; a.click();
 }
 </script>
 </body>
