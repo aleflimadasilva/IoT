@@ -4,9 +4,6 @@
 <meta charset="UTF-8">
 <title>Painel IoT 3.7 | Alef</title>
 
-<!-- =======================
-   IMPORTS
-======================= -->
 <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -65,10 +62,20 @@ body {
     display: block;
 }
 
+/* MODIFICAÇÃO: Moldura no botão voltar */
 .voltar {
-    margin-bottom: 10px;
+    margin-bottom: 20px;
     cursor: pointer;
     color: #38bdf8;
+    display: inline-block;
+    padding: 8px 15px;
+    border: 2px solid #38bdf8;
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+
+.voltar:hover {
+    background: rgba(56, 189, 248, 0.1);
 }
 
 /* =======================
@@ -181,9 +188,6 @@ canvas { max-height: 150px; }
 
 <body>
 
-<!-- =======================
-   HOME PRINCIPAL
-======================= -->
 <div id="home" class="tela active">
     <h2 style="text-align:center;">🏠 Painel IoT</h2>
     <div class="home">
@@ -194,14 +198,10 @@ canvas { max-height: 150px; }
     </div>
 </div>
 
-<!-- =======================
-   TELA GERAL
-======================= -->
 <div id="geral" class="tela">
     <div class="voltar" onclick="voltar()">⬅ Voltar</div>
     <div class="container">
 
-        <!-- CARD GAUGE TEMPERATURA -->
         <div class="card">
             <div style="display:flex; justify-content: space-between; align-items: center; width:100%; margin-bottom:10px;">
                 <h3 style="margin:0;">🌡️ Temperatura</h3>
@@ -209,7 +209,6 @@ canvas { max-height: 150px; }
             </div>
 
             <div class="gauge">
-                <!-- GAUGE VISUAL (SVG + AGULHA) -->
                 <div class="gauge-visual">
                     <svg viewBox="0 0 200 120">
                         <path d="M 20 100 A 80 80 0 0 1 180 100" stroke="#1f2937" stroke-width="12" fill="none"/>
@@ -220,12 +219,10 @@ canvas { max-height: 150px; }
                     <div class="needle" id="needle"></div>
                 </div>
 
-                <!-- VALOR TEMPERATURA (ABAIXO DO GAUGE) -->
                 <div id="gauge-temp">-- °C</div>
             </div>
         </div>
 
-        <!-- CARD GRÁFICO HISTÓRICO -->
         <div class="card">
             <h3>📈 Histórico</h3>
             <canvas id="grafico"></canvas>
@@ -234,9 +231,6 @@ canvas { max-height: 150px; }
     </div>
 </div>
 
-<!-- =======================
-   TELA SALA
-======================= -->
 <div id="sala" class="tela">
     <div class="voltar" onclick="voltar()">⬅ Voltar</div>
     <div class="container">
@@ -251,9 +245,6 @@ canvas { max-height: 150px; }
     </div>
 </div>
 
-<!-- =======================
-   TELA QUARTO
-======================= -->
 <div id="quarto" class="tela">
     <div class="voltar" onclick="voltar()">⬅ Voltar</div>
     <div class="container">
@@ -268,9 +259,6 @@ canvas { max-height: 150px; }
     </div>
 </div>
 
-<!-- =======================
-   TELA BANHEIRO
-======================= -->
 <div id="banheiro" class="tela">
     <div class="voltar" onclick="voltar()">⬅ Voltar</div>
     <div class="container">
