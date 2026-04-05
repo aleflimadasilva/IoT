@@ -218,6 +218,39 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
     border-radius: 10px;
 }
 
+/* Abas de navegação do histórico */
+.historico-aba-container {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.historico-aba {
+    background: #1f2937;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s;
+}
+
+.historico-aba.ativa {
+    background: #38bdf8;
+    color: #000;
+    font-weight: bold;
+}
+
+.historico-conteudo {
+    display: none;
+    width: 100%;
+}
+
+.historico-conteudo.ativa {
+    display: block;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    MEDIA QUERY PARA CELULARES
    ═══════════════════════════════════════════════════════════════ */
@@ -246,6 +279,8 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
     
     h2 { font-size: 20px; }
     h3 { font-size: 16px; }
+    
+    .historico-aba { padding: 6px 12px; font-size: 10px; }
 }
 
 @media (min-width: 481px) and (max-width: 768px) {
@@ -273,19 +308,20 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
         <div class="app-card" onclick="abrirTela('quarto')">🛏️<span>Quarto</span></div>
         <div class="app-card" onclick="abrirTela('banheiro')">🚿<span>Banheiro</span></div>
         <div class="app-card" onclick="abrirTela('cozinha')">🍳<span>Cozinha</span></div>
-        <div class="app-card" onclick="abrirTela('historico')">📊<span>Histórico</span></div>
     </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════
-     TELA GERAL (TEMPERATURA E GRÁFICO)
+     TELA GERAL (TEMPERATURA, GRÁFICO E HISTÓRICO)
      ═══════════════════════════════════════════════════════════════ -->
 <div id="geral" class="tela">
     <div class="voltar" onclick="voltar()">⬅ Voltar</div>
+    
+    <!-- Card 1: Temperatura e Medidor -->
     <div class="container">
-        <div class="card" id="card-temp">
-            <div style="display:flex; justify-content: space-between; align-items: center; width:100%; margin-bottom:10px;">
-                <h3 style="margin:0;">🌡️ Temperatura</h3>
+        <div class="card" id="card-temp" style="max-width: 100%;">
+            <div style="display:flex; justify-content: space-between; align-items: center; width:100%; margin-bottom:10px; flex-wrap: wrap;">
+                <h3 style="margin:0;">🌡️ Temperatura Geral (DS18B20)</h3>
                 <div id="status-mqtt" class="status-inline">🟡 Conectando...</div>
             </div>
             <div class="gauge">
@@ -301,11 +337,74 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
                 <div id="gauge-temp">-- °C</div>
             </div>
         </div>
-
-        <div class="card">
-            <h3>📈 Histórico de Temperatura</h3>
+    </div>
+    
+    <!-- Card 2: Gráfico em tempo real -->
+    <div class="container">
+        <div class="card" style="max-width: 100%;">
+            <h3>📈 Histórico de Temperatura (Últimas Leituras)</h3>
             <canvas id="grafico"></canvas>
-            <button onclick="baixarHistorico()">📥 Baixar CSV</button>
+            <button onclick="baixarHistorico()">📥 Baixar CSV do Gráfico</button>
+        </div>
+    </div>
+    
+    <!-- Card 3: Histórico Completo por Cômodo -->
+    <div class="container">
+        <div class="card" style="max-width: 100%;">
+            <h3>📊 Histórico Completo por Cômodo</h3>
+            <p style="font-size:12px; text-align:center;">Temperatura e Umidade registradas pelos sensores</p>
+            
+            <!-- Abas de navegação -->
+            <div class="historico-aba-container">
+                <div class="historico-aba ativa" onclick="mudarAbaHistorico('geral')">🌡️ Geral</div>
+                <div class="historico-aba" onclick="mudarAbaHistorico('sala')">🛋️ Sala</div>
+                <div class="historico-aba" onclick="mudarAbaHistorico('quarto')">🛏️ Quarto</div>
+            </div>
+            
+            <!-- Conteúdo Geral -->
+            <div id="historico-geral-conteudo" class="historico-conteudo ativa">
+                <p style="font-size:11px; margin-bottom:5px;">Sensor DS18B20 - Temperatura ambiente</p>
+                <div style="max-height: 300px; overflow-y: auto; width: 100%;">
+                    <table style="width: 100%;">
+                        <thead>
+                            <tr><th>Data</th><th>Hora</th><th>Temperatura</th></tr>
+                        </thead>
+                        <tbody id="historico-geral-body"></tbody>
+                    划
+                </div>
+                <button onclick="exportarExcel('geral')">📥 Exportar Geral (Excel)</button>
+            </div>
+            
+            <!-- Conteúdo Sala -->
+            <div id="historico-sala-conteudo" class="historico-conteudo">
+                <p style="font-size:11px; margin-bottom:5px;">Sensor DHT11 - Temperatura e Umidade da Sala</p>
+                <div style="max-height: 300px; overflow-y: auto; width: 100%;">
+                    <table style="width: 100%;">
+                        <thead>
+                            <tr><th>Data</th><th>Hora</th><th>Temperatura</th><th>Umidade</th></tr>
+                        </thead>
+                        <tbody id="historico-sala-body"></tbody>
+                    划
+                </div>
+                <button onclick="exportarExcel('sala')">📥 Exportar Sala (Excel)</button>
+            </div>
+            
+            <!-- Conteúdo Quarto -->
+            <div id="historico-quarto-conteudo" class="historico-conteudo">
+                <p style="font-size:11px; margin-bottom:5px;">Sensor DHT11 - Temperatura e Umidade do Quarto</p>
+                <div style="max-height: 300px; overflow-y: auto; width: 100%;">
+                    <table style="width: 100%;">
+                        <thead>
+                            <tr><th>Data</th><th>Hora</th><th>Temperatura</th><th>Umidade</th></tr>
+                        </thead>
+                        <tbody id="historico-quarto-body"></tbody>
+                    划
+                </div>
+                <button onclick="exportarExcel('quarto')">📥 Exportar Quarto (Excel)</button>
+            </div>
+            
+            <!-- Botão exportar todos -->
+            <button onclick="exportarExcel('todos')" style="margin-top: 15px; background: #22c55e;">📥 Exportar TODOS os Cômodos (Excel)</button>
         </div>
     </div>
 </div>
@@ -394,67 +493,6 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
     </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     TELA DE HISTÓRICO (NOVA)
-     ═══════════════════════════════════════════════════════════════ -->
-<div id="historico" class="tela">
-    <div class="voltar" onclick="voltar()">⬅ Voltar</div>
-    
-    <div class="container">
-        <!-- Histórico Geral -->
-        <div class="card">
-            <h3>📊 Histórico Geral</h3>
-            <p style="font-size:12px; margin:0 0 10px 0;">Temperatura do sensor DS18B20</p>
-            <div style="max-height: 300px; overflow-y: auto; width: 100%;">
-                <table style="width: 100%;">
-                    <thead>
-                        <tr><th>Data</th><th>Hora</th><th>Temperatura</th></tr>
-                    </thead>
-                    <tbody id="historico-geral-body"></tbody>
-                </table>
-            </div>
-            <button onclick="exportarExcel('geral')">📥 Exportar Geral (Excel)</button>
-        </div>
-        
-        <!-- Histórico Sala -->
-        <div class="card">
-            <h3>🛋️ Histórico Sala</h3>
-            <p style="font-size:12px; margin:0 0 10px 0;">Temperatura e Umidade (DHT11)</p>
-            <div style="max-height: 300px; overflow-y: auto; width: 100%;">
-                <table style="width: 100%;">
-                    <thead>
-                        <tr><th>Data</th><th>Hora</th><th>Temperatura</th><th>Umidade</th></tr>
-                    </thead>
-                    <tbody id="historico-sala-body"></tbody>
-                </table>
-            </div>
-            <button onclick="exportarExcel('sala')">📥 Exportar Sala (Excel)</button>
-        </div>
-        
-        <!-- Histórico Quarto -->
-        <div class="card">
-            <h3>🛏️ Histórico Quarto</h3>
-            <p style="font-size:12px; margin:0 0 10px 0;">Temperatura e Umidade (DHT11)</p>
-            <div style="max-height: 300px; overflow-y: auto; width: 100%;">
-                <table style="width: 100%;">
-                    <thead>
-                        <tr><th>Data</th><th>Hora</th><th>Temperatura</th><th>Umidade</th></tr>
-                    </thead>
-                    <tbody id="historico-quarto-body"></tbody>
-                </table>
-            </div>
-            <button onclick="exportarExcel('quarto')">📥 Exportar Quarto (Excel)</button>
-        </div>
-        
-        <!-- Exportação Completa -->
-        <div class="card">
-            <h3>📁 Exportação Completa</h3>
-            <p style="font-size:12px; margin:0 0 10px 0;">Exportar histórico de todos os cômodos em um único arquivo</p>
-            <button onclick="exportarExcel('todos')" style="background: #22c55e;">📥 Exportar TODOS os Cômodos</button>
-        </div>
-    </div>
-</div>
-
 <script>
 // ═══════════════════════════════════════════════════════════════════
 // CONFIGURAÇÃO DO BACKEND
@@ -468,8 +506,8 @@ function abrirTela(id) {
     document.querySelectorAll('.tela').forEach(t => t.classList.remove('active'));
     document.getElementById(id).classList.add('active');
     
-    // Recarrega históricos se for a tela de histórico
-    if (id === 'historico') {
+    // Recarrega históricos se for a tela geral
+    if (id === 'geral') {
         carregarHistoricoGeral();
         carregarHistoricoSala();
         carregarHistoricoQuarto();
@@ -478,6 +516,27 @@ function abrirTela(id) {
 
 function voltar() { 
     abrirTela('home'); 
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// FUNÇÃO PARA MUDAR ABA DO HISTÓRICO
+// ═══════════════════════════════════════════════════════════════════
+function mudarAbaHistorico(aba) {
+    // Remove classe ativa de todas as abas
+    document.querySelectorAll('.historico-aba').forEach(el => el.classList.remove('ativa'));
+    document.querySelectorAll('.historico-conteudo').forEach(el => el.classList.remove('ativa'));
+    
+    // Adiciona classe ativa na aba clicada
+    if (aba === 'geral') {
+        document.querySelector('.historico-aba:first-child').classList.add('ativa');
+        document.getElementById('historico-geral-conteudo').classList.add('ativa');
+    } else if (aba === 'sala') {
+        document.querySelectorAll('.historico-aba')[1].classList.add('ativa');
+        document.getElementById('historico-sala-conteudo').classList.add('ativa');
+    } else if (aba === 'quarto') {
+        document.querySelectorAll('.historico-aba')[2].classList.add('ativa');
+        document.getElementById('historico-quarto-conteudo').classList.add('ativa');
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -661,7 +720,7 @@ function processarTemperatura(valor) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// FUNÇÃO PARA BAIXAR CSV
+// FUNÇÃO PARA BAIXAR CSV DO GRÁFICO
 // ═══════════════════════════════════════════════════════════════════
 function baixarHistorico() {
     if (!window.logsParaCSV || window.logsParaCSV.length === 0) {
@@ -676,13 +735,13 @@ function baixarHistorico() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `historico_iot_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`;
+    a.download = `historico_grafico_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`;
     a.click();
     URL.revokeObjectURL(url);
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// FUNÇÕES DE HISTÓRICO
+// FUNÇÕES DE HISTÓRICO COMPLETO
 // ═══════════════════════════════════════════════════════════════════
 
 async function carregarHistoricoGeral() {
@@ -843,7 +902,7 @@ window.logsParaCSV = [];
 setInterval(buscarDados, 2000);
 buscarDados();
 
-// Carrega históricos
+// Carrega históricos ao iniciar
 setTimeout(() => {
     carregarHistoricoGeral();
     carregarHistoricoSala();
@@ -852,7 +911,6 @@ setTimeout(() => {
 
 console.log("✅ Painel IoT inicializado!");
 console.log(`📡 Backend configurado em: ${BACKEND_URL}`);
-console.log("💡 Abra o Console (F12) para ver os logs");
 </script>
 
 </body>
