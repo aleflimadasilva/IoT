@@ -413,140 +413,264 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
                 <button class="btn-off" onclick="enviarComando('QUARTINHO','OFF', event)">🔌 DESLIGAR</button>
             </div>
             
-         <!--- TEMPORIZADOR -->
-
-    <title>Temporizador de Lâmpada</title>
-    
-    <style>
-        /* --- ESTILO (A PARTE VISUAL) --- */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            color: white;
-            margin: 0;
-        }
-
-       
-
-        /* Configurações da Lâmpada (Emoji) */
-        #lampada {
-            font-size: 50px; /* Tamanho da lâmpada */
-            margin-bottom: 28px;
-            transition: 0.5s; /* Faz o brilho aparecer suavemente */
-            filter: grayscale(100%); /* Começa cinza (apagada) */
-            opacity: 0.3; /* Começa meio transparente */
-        }
-
-        /* Estilo de quando a lâmpada está ACESA */
-        .acesa {
-            filter: grayscale(0%) !important; /* Volta a cor original (amarelo) */
-            opacity: 1 !important;
-            text-shadow: 0 0 40px #ffdb58; /* Cria o efeito de luz brilhando */
-        }
-
-        /* Estilo dos campos de texto e botões */
-        input {
-            padding: 12px;
-            border-radius: 8px;
-            border: none;
-            width: 80px;
-            font-size: 18px;
-            outline: none;
-        }
-
-        button {
-            padding: 12px 25px;
-            border-radius: 8px;
-            border: none;
-            background-color: #15803d; /* Cor do botão */
-            color: #333;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 15px;
-            margin-left: 10px;
-            transition: 0.2s;
-        }
-
-        button:hover {
-            background-color: #ffd22e; /* Cor quando passa o mouse */
-            transform: scale(1.05); /* Aumenta um pouquinho o botão */
-        }
-
-        #cronometro {
-            margin-top: 10px;
-            font-size: 28px;
-            color: #ffffff;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="container">
-        <h2>Temporizador</h2>
-        
-        <!-- Este é o elemento que vamos "acender" e "apagar" -->
-        <div id="lampada">💡</div>
-
-        <div>
-            <!-- Usuário digita os minutos aqui -->
-            <input type="number" id="minutosInput" placeholder="Min" min="1">
-            <button onclick="iniciarTemporizador()">Timer</button>
+            <!-- TEMPORIZADOR -->
+            <div class="temporizador-area">
+                <h4>⏱️ TEMPORIZADOR PARA DESLIGAR</h4>
+                <div class="tempo-inputs">
+                    <div class="input-group">
+                        <label>Horas</label>
+                        <input type="number" id="horasTimer" min="0" max="23" value="0" step="1">
+                    </div>
+                    <div class="input-group">
+                        <label>Minutos</label>
+                        <input type="number" id="minutosTimer" min="0" max="59" value="0" step="1">
+                    </div>
+                </div>
+                <div class="timer-buttons">
+                    <button class="btn-timer" onclick="iniciarTimerDesligar()">⏰ INICIAR TIMER</button>
+                    <button class="btn-timer-cancel" onclick="cancelarTimerDesligar()">✖ CANCELAR</button>
+                </div>
+                <div id="timerDisplay" class="timer-display">--:--:--</div>
+                <div id="timerStatus" class="timer-status"></div>
+            </div>
         </div>
-
-        <!-- Onde o tempo vai aparecer diminuindo -->
-        <div id="cronometro">--:--</div>
     </div>
+</div>
 
-    <script>
-        /* --- LÓGICA (O CÉREBRO DO CÓDIGO) --- */
-        let contador; // Guarda o intervalo para podermos pará-lo depois
+<style>
+    /* Estilos do temporizador */
+    .temporizador-area {
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.2);
+    }
+    
+    .temporizador-area h4 {
+        margin: 0 0 15px 0;
+        color: #ffdb58;
+        font-size: 1rem;
+    }
+    
+    .tempo-inputs {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+    
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .input-group label {
+        font-size: 0.75rem;
+        color: #aaa;
+    }
+    
+    .input-group input {
+        width: 80px;
+        padding: 8px;
+        border-radius: 8px;
+        border: none;
+        text-align: center;
+        font-size: 1rem;
+        background: #2a2a2a;
+        color: white;
+        border: 1px solid #444;
+    }
+    
+    .input-group input:focus {
+        outline: none;
+        border-color: #ffdb58;
+    }
+    
+    .timer-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+    
+    .btn-timer {
+        background-color: #ff9800;
+        color: #1a1a1a;
+        padding: 8px 16px;
+        border-radius: 6px;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    
+    .btn-timer:hover {
+        background-color: #ffb74d;
+        transform: scale(1.02);
+    }
+    
+    .btn-timer-cancel {
+        background-color: transparent;
+        border: 1px solid #ff5555;
+        color: #ff8888;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    
+    .btn-timer-cancel:hover {
+        background-color: rgba(255,85,85,0.2);
+        border-color: #ff5555;
+        color: #ffaaaa;
+    }
+    
+    .timer-display {
+        font-size: 1.8rem;
+        font-weight: bold;
+        font-family: monospace;
+        background: #00000055;
+        padding: 10px;
+        border-radius: 12px;
+        margin: 10px 0;
+        letter-spacing: 3px;
+    }
+    
+    .timer-status {
+        font-size: 0.75rem;
+        color: #ffaa66;
+        min-height: 25px;
+    }
+</style>
 
-        function iniciarTemporizador() {
-            // 1. Pegamos os elementos da tela para usar no código
-            const input = document.getElementById('minutosInput');
-            const lampada = document.getElementById('lampada');
-            const display = document.getElementById('cronometro');
-            
-            // 2. Pegamos o valor digitado e convertemos para segundos (Minutos * 60)
-            let segundosRestantes = parseInt(input.value) * 60;
-
-            // 3. Verificação: Se o campo estiver vazio ou for zero, avisa o usuário
-            if (isNaN(segundosRestantes) || segundosRestantes <= 0) {
-                alert("Ops! Digite quantos minutos você quer deixar a luz acesa.");
-                return;
-            }
-
-            // 4. Se já houver um timer rodando, a gente para ele antes de começar o novo
-            clearInterval(contador);
-            
-            // 5. Acende a lâmpada (adiciona a classe CSS que brilha)
-            lampada.classList.add('acesa');
-
-            // 6. Criamos a função que roda a cada 1 segundo (1000 milissegundos)
-            contador = setInterval(() => {
-                segundosRestantes--; // Diminui 1 segundo a cada rodada
-
-                // Cálculos para transformar segundos totais em Minutos:Segundos
-                let m = Math.floor(segundosRestantes / 60);
-                let s = segundosRestantes % 60;
-                
-                // Formatação: padStart(2, '0') faz o "5" virar "05" para ficar bonito
-                display.innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-
-                // 7. Quando o tempo chegar a zero...
-                if (segundosRestantes <= 0) {
-                    clearInterval(contador); // Para o relógio
-                    lampada.classList.remove('acesa'); // Apaga a lâmpada
-                    display.innerText = "Tempo esgotado! 🌑"; // Mensagem final
-                }
-            }, 1000); 
+<script>
+    // Variáveis do temporizador
+    let intervaloDesligar = null;
+    let segundosRestantesDesligar = 0;
+    let timerAtivo = false;
+    
+    // Função para formatar tempo (HH:MM:SS)
+    function formatarTempoCompleto(segundosTotais) {
+        if (segundosTotais < 0) segundosTotais = 0;
+        const horas = Math.floor(segundosTotais / 3600);
+        const minutos = Math.floor((segundosTotais % 3600) / 60);
+        const segundos = segundosTotais % 60;
+        return `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+    }
+    
+    // Função para parar o timer (sem acionar o desligamento)
+    function pararTimerApenas() {
+        if (intervaloDesligar) {
+            clearInterval(intervaloDesligar);
+            intervaloDesligar = null;
         }
-    </script>
+        timerAtivo = false;
+    }
+    
+    // Função para cancelar o timer (botão cancelar)
+    function cancelarTimerDesligar() {
+        pararTimerApenas();
+        segundosRestantesDesligar = 0;
+        document.getElementById('timerDisplay').innerText = '--:--:--';
+        document.getElementById('timerStatus').innerHTML = '⏹️ Timer cancelado';
+        
+        // Limpa a mensagem após 2 segundos
+        setTimeout(() => {
+            if (!timerAtivo) {
+                document.getElementById('timerStatus').innerHTML = '';
+            }
+        }, 2000);
+    }
+    
+    // Função principal para iniciar o timer
+    function iniciarTimerDesligar() {
+        // Pegar valores de horas e minutos
+        const horas = parseInt(document.getElementById('horasTimer').value) || 0;
+        const minutos = parseInt(document.getElementById('minutosTimer').value) || 0;
+        
+        // Validar se pelo menos um valor é positivo
+        if (horas === 0 && minutos === 0) {
+            document.getElementById('timerStatus').innerHTML = '⚠️ Defina pelo menos 1 hora ou 1 minuto';
+            setTimeout(() => {
+                if (!timerAtivo) document.getElementById('timerStatus').innerHTML = '';
+            }, 2000);
+            return;
+        }
+        
+        // Validar limites
+        if (horas > 23) {
+            document.getElementById('timerStatus').innerHTML = '⚠️ Horas não podem exceder 23';
+            return;
+        }
+        if (minutos > 59) {
+            document.getElementById('timerStatus').innerHTML = '⚠️ Minutos não podem exceder 59';
+            return;
+        }
+        
+        // Calcular segundos totais
+        segundosRestantesDesligar = (horas * 3600) + (minutos * 60);
+        
+        // Parar timer anterior se existir
+        pararTimerApenas();
+        
+        // Atualizar display inicial
+        document.getElementById('timerDisplay').innerText = formatarTempoCompleto(segundosRestantesDesligar);
+        document.getElementById('timerStatus').innerHTML = `⏳ Timer agendado para desligar em ${horas}h ${minutos}min`;
+        timerAtivo = true;
+        
+        // Iniciar novo intervalo
+        intervaloDesligar = setInterval(() => {
+            if (segundosRestantesDesligar <= 1) {
+                // TEMPO ESGOTADO - DESLIGAR A LÂMPADA!
+                pararTimerApenas();
+                
+                // 🔥 DISPARAR O COMANDO DESLIGAR como se fosse um clique no botão 🔥
+                // Isso simula exatamente o clique no botão "DESLIGAR"
+                const botaoDesligar = document.querySelector('#QUARTINHO .btn-off');
+                if (botaoDesligar) {
+                    botaoDesligar.click();  // Simula o clique no botão
+                } else {
+                    // Fallback: chamar a função diretamente
+                    enviarComando('QUARTINHO', 'OFF', null);
+                }
+                
+                // Atualizar interface do timer
+                document.getElementById('timerDisplay').innerText = '00:00:00';
+                document.getElementById('timerStatus').innerHTML = '✅ LÂMPADA DESLIGADA PELO TIMER!';
+                
+                // Limpar mensagem após 3 segundos
+                setTimeout(() => {
+                    if (!timerAtivo) {
+                        document.getElementById('timerStatus').innerHTML = '';
+                        document.getElementById('timerDisplay').innerText = '--:--:--';
+                    }
+                }, 3000);
+                
+            } else {
+                segundosRestantesDesligar--;
+                document.getElementById('timerDisplay').innerText = formatarTempoCompleto(segundosRestantesDesligar);
+            }
+        }, 1000);
+    }
+    
+    // Observar quando a lâmpada for ligada/desligada manualmente para feedback opcional
+    // (Isso é opcional, apenas para mostrar que o timer ainda está rodando)
+    function atualizarStatusTimer() {
+        const statusDiv = document.getElementById('status-QUARTINHO');
+        if (statusDiv && timerAtivo) {
+            const estaLigada = statusDiv.innerText.includes('LIGADA');
+            if (!estaLigada && segundosRestantesDesligar > 0) {
+                // Se alguém desligou manualmente, cancelamos o timer para não desligar de novo
+                cancelarTimerDesligar();
+                document.getElementById('timerStatus').innerHTML = '⏹️ Timer cancelado (desligamento manual)';
+            }
+        }
+    }
+    
+    // Opcional: verificar a cada segundo se a lâmpada foi desligada manualmente
+    setInterval(atualizarStatusTimer, 500);
+</script>
 
 </body>
 </html>
