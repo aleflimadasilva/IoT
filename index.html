@@ -257,6 +257,111 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
         max-width: 320px;
     }
 }
+
+/* Estilos do temporizador */
+.temporizador-area {
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+}
+
+.temporizador-area h4 {
+    margin: 0 0 15px 0;
+    color: #ffdb58;
+    font-size: 1rem;
+}
+
+.tempo-inputs {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.input-group label {
+    font-size: 0.75rem;
+    color: #aaa;
+}
+
+.input-group input {
+    width: 80px;
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    text-align: center;
+    font-size: 1rem;
+    background: #2a2a2a;
+    color: white;
+    border: 1px solid #444;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #ffdb58;
+}
+
+.timer-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.btn-timer {
+    background-color: #ff9800;
+    color: #1a1a1a;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-timer:hover {
+    background-color: #ffb74d;
+    transform: scale(1.02);
+}
+
+.btn-timer-cancel {
+    background-color: transparent;
+    border: 1px solid #ff5555;
+    color: #ff8888;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-timer-cancel:hover {
+    background-color: rgba(255,85,85,0.2);
+    border-color: #ff5555;
+    color: #ffaaaa;
+}
+
+.timer-display {
+    font-size: 1.8rem;
+    font-weight: bold;
+    font-family: monospace;
+    background: #00000055;
+    padding: 10px;
+    border-radius: 12px;
+    margin: 10px 0;
+    letter-spacing: 3px;
+}
+
+.timer-status {
+    font-size: 0.75rem;
+    color: #ffaa66;
+    min-height: 25px;
+}
 </style>
 </head>
 
@@ -274,8 +379,6 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
         <div class="app-card" onclick="abrirTela('banheiro')">🚿<span>Banheiro</span></div>
         <div class="app-card" onclick="abrirTela('cozinha')">🍳<span>Cozinha</span></div>
         <div class="app-card" onclick="abrirTela('QUARTINHO')"> &#x1F635<span>Quartinho da bagunça</span></div>
-        
-        
     </div>
 </div>
 
@@ -302,6 +405,12 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
                 </div>
                 <div id="gauge-temp">-- °C</div>
             </div>
+        </div>
+
+        <!-- CARD DO GRÁFICO - ADICIONADO -->
+        <div class="card">
+            <h3>📈 Gráfico de Temperatura</h3>
+            <canvas id="grafico" width="400" height="200"></canvas>
         </div>
 
         <div class="card">
@@ -441,7 +550,6 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
     </div>
 </div>
 
-
 <!-- ═══════════════════════════════════════════════════════════════
      TELA QUARTINHO DA BAGUNCA
      ═══════════════════════════════════════════════════════════════ -->
@@ -480,253 +588,6 @@ div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb {
     </div>
 </div>
 
-<style>
-    /* Estilos do temporizador */
-    .temporizador-area {
-        margin-top: 25px;
-        padding-top: 20px;
-        border-top: 1px solid rgba(255,255,255,0.2);
-    }
-    
-    .temporizador-area h4 {
-        margin: 0 0 15px 0;
-        color: #ffdb58;
-        font-size: 1rem;
-    }
-    
-    .tempo-inputs {
-        display: flex;
-        gap: 15px;
-        justify-content: center;
-        margin-bottom: 15px;
-    }
-    
-    .input-group {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 5px;
-    }
-    
-    .input-group label {
-        font-size: 0.75rem;
-        color: #aaa;
-    }
-    
-    .input-group input {
-        width: 80px;
-        padding: 8px;
-        border-radius: 8px;
-        border: none;
-        text-align: center;
-        font-size: 1rem;
-        background: #2a2a2a;
-        color: white;
-        border: 1px solid #444;
-    }
-    
-    .input-group input:focus {
-        outline: none;
-        border-color: #ffdb58;
-    }
-    
-    .timer-buttons {
-        display: flex;
-        gap: 10px;
-        justify-content: center;
-        margin-bottom: 15px;
-    }
-    
-    .btn-timer {
-        background-color: #ff9800;
-        color: #1a1a1a;
-        padding: 8px 16px;
-        border-radius: 6px;
-        border: none;
-        font-weight: bold;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-    
-    .btn-timer:hover {
-        background-color: #ffb74d;
-        transform: scale(1.02);
-    }
-    
-    .btn-timer-cancel {
-        background-color: transparent;
-        border: 1px solid #ff5555;
-        color: #ff8888;
-        padding: 8px 16px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-    
-    .btn-timer-cancel:hover {
-        background-color: rgba(255,85,85,0.2);
-        border-color: #ff5555;
-        color: #ffaaaa;
-    }
-    
-    .timer-display {
-        font-size: 1.8rem;
-        font-weight: bold;
-        font-family: monospace;
-        background: #00000055;
-        padding: 10px;
-        border-radius: 12px;
-        margin: 10px 0;
-        letter-spacing: 3px;
-    }
-    
-    .timer-status {
-        font-size: 0.75rem;
-        color: #ffaa66;
-        min-height: 25px;
-    }
-</style>
-
-<script>
-    // Variáveis do temporizador
-    let intervaloDesligar = null;
-    let segundosRestantesDesligar = 0;
-    let timerAtivo = false;
-    
-    // Função para formatar tempo (HH:MM:SS)
-    function formatarTempoCompleto(segundosTotais) {
-        if (segundosTotais < 0) segundosTotais = 0;
-        const horas = Math.floor(segundosTotais / 3600);
-        const minutos = Math.floor((segundosTotais % 3600) / 60);
-        const segundos = segundosTotais % 60;
-        return `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
-    }
-    
-    // Função para parar o timer (sem acionar o desligamento)
-    function pararTimerApenas() {
-        if (intervaloDesligar) {
-            clearInterval(intervaloDesligar);
-            intervaloDesligar = null;
-        }
-        timerAtivo = false;
-    }
-    
-    // Função para cancelar o timer (botão cancelar)
-    function cancelarTimerDesligar() {
-        pararTimerApenas();
-        segundosRestantesDesligar = 0;
-        document.getElementById('timerDisplay').innerText = '--:--:--';
-        document.getElementById('timerStatus').innerHTML = '⏹️ Timer cancelado';
-        
-        // Limpa a mensagem após 2 segundos
-        setTimeout(() => {
-            if (!timerAtivo) {
-                document.getElementById('timerStatus').innerHTML = '';
-            }
-        }, 2000);
-    }
-    
-    // Função principal para iniciar o timer
-    function iniciarTimerDesligar() {
-        // Pegar valores de horas e minutos
-        const horas = parseInt(document.getElementById('horasTimer').value) || 0;
-        const minutos = parseInt(document.getElementById('minutosTimer').value) || 0;
-        
-        // Validar se pelo menos um valor é positivo
-        if (horas === 0 && minutos === 0) {
-            document.getElementById('timerStatus').innerHTML = '⚠️ Defina pelo menos 1 hora ou 1 minuto';
-            setTimeout(() => {
-                if (!timerAtivo) document.getElementById('timerStatus').innerHTML = '';
-            }, 2000);
-            return;
-        }
-        
-        // Validar limites
-        if (horas > 23) {
-            document.getElementById('timerStatus').innerHTML = '⚠️ Horas não podem exceder 23';
-            return;
-        }
-        if (minutos > 59) {
-            document.getElementById('timerStatus').innerHTML = '⚠️ Minutos não podem exceder 59';
-            return;
-        }
-        
-        // Calcular segundos totais
-        segundosRestantesDesligar = (horas * 3600) + (minutos * 60);
-        
-        // Parar timer anterior se existir
-        pararTimerApenas();
-        
-        // Atualizar display inicial
-        document.getElementById('timerDisplay').innerText = formatarTempoCompleto(segundosRestantesDesligar);
-        document.getElementById('timerStatus').innerHTML = `⏳ Timer agendado para desligar em ${horas}h ${minutos}min`;
-        timerAtivo = true;
-        
-        // Iniciar novo intervalo
-        intervaloDesligar = setInterval(() => {
-            if (segundosRestantesDesligar <= 1) {
-                // TEMPO ESGOTADO - DESLIGAR A LÂMPADA!
-                pararTimerApenas();
-                
-                // 🔥 DISPARAR O COMANDO DESLIGAR como se fosse um clique no botão 🔥
-                // Isso simula exatamente o clique no botão "DESLIGAR"
-                const botaoDesligar = document.querySelector('#QUARTINHO .btn-off');
-                if (botaoDesligar) {
-                    botaoDesligar.click();  // Simula o clique no botão
-                } else {
-                    // Fallback: chamar a função diretamente
-                    enviarComando('QUARTINHO', 'OFF', null);
-                }
-                
-                // Atualizar interface do timer
-                document.getElementById('timerDisplay').innerText = '00:00:00';
-                document.getElementById('timerStatus').innerHTML = '✅ LÂMPADA DESLIGADA PELO TIMER!';
-                
-                // Limpar mensagem após 3 segundos
-                setTimeout(() => {
-                    if (!timerAtivo) {
-                        document.getElementById('timerStatus').innerHTML = '';
-                        document.getElementById('timerDisplay').innerText = '--:--:--';
-                    }
-                }, 3000);
-                
-            } else {
-                segundosRestantesDesligar--;
-                document.getElementById('timerDisplay').innerText = formatarTempoCompleto(segundosRestantesDesligar);
-            }
-        }, 1000);
-    }
-    
-    // Observar quando a lâmpada for ligada/desligada manualmente para feedback opcional
-    // (Isso é opcional, apenas para mostrar que o timer ainda está rodando)
-    function atualizarStatusTimer() {
-        const statusDiv = document.getElementById('status-QUARTINHO');
-        if (statusDiv && timerAtivo) {
-            const estaLigada = statusDiv.innerText.includes('LIGADA');
-            if (!estaLigada && segundosRestantesDesligar > 0) {
-                // Se alguém desligou manualmente, cancelamos o timer para não desligar de novo
-                cancelarTimerDesligar();
-                document.getElementById('timerStatus').innerHTML = '⏹️ Timer cancelado (desligamento manual)';
-            }
-        }
-    }
-    
-    // Opcional: verificar a cada segundo se a lâmpada foi desligada manualmente
-    setInterval(atualizarStatusTimer, 500);
-</script>
-
-</body>
-</html>
-
-        </div>
-    </div>
-</div>
-
-
-
-
-
-
 <script>
 // ═══════════════════════════════════════════════════════════════════
 // CONFIGURAÇÃO DO BACKEND
@@ -753,9 +614,12 @@ function voltar() {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// FUNÇÃO PARA ENVIAR COMANDOS
+// FUNÇÃO PARA ENVIAR COMANDOS (CORRIGIDA - ATUALIZA IMEDIATAMENTE)
 // ═══════════════════════════════════════════════════════════════════
 async function enviarComando(dispositivo, acao, event) {
+    // Atualiza interface IMEDIATAMENTE (feedback visual instantâneo)
+    atualizarLampada(dispositivo, acao);
+    
     try {
         console.log(`📤 Enviando comando: ${dispositivo} -> ${acao}`);
         
@@ -786,19 +650,26 @@ async function enviarComando(dispositivo, acao, event) {
         
         if (response.ok) {
             console.log(`✅ Comando ${acao} enviado para ${dispositivo}`);
-            atualizarLampada(dispositivo, acao);
         } else {
             console.error(`❌ Erro: ${resultado.erro || 'Erro desconhecido'}`);
+            // Reverte o estado se o comando falhou
+            const estadoReverso = acao === 'ON' ? 'OFF' : 'ON';
+            atualizarLampada(dispositivo, estadoReverso);
             alert(`Erro ao enviar comando: ${resultado.erro || 'Tente novamente'}`);
         }
     } catch (erro) {
         console.error("❌ Erro de conexão:", erro);
+        // Reverte o estado em caso de erro de conexão
+        const estadoReverso = acao === 'ON' ? 'OFF' : 'ON';
+        atualizarLampada(dispositivo, estadoReverso);
+        
         const btn = event?.target;
         if (btn) {
             btn.innerText = acao === 'ON' ? '💡 LIGAR' : '🔌 DESLIGAR';
             btn.style.opacity = "1";
             btn.disabled = false;
         }
+        alert("Erro de conexão com o servidor. Verifique sua internet.");
     }
 }
 
@@ -1059,50 +930,182 @@ function exportarExcel(comodo) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// INICIALIZAÇÃO DO GRÁFICO
+// FUNÇÕES DO TEMPORIZADOR
 // ═══════════════════════════════════════════════════════════════════
-const ctx = document.getElementById('grafico').getContext('2d');
-window.meuGrafico = new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: [],
-        datasets: [{
-            label: 'Temperatura (°C)',
-            data: [],
-            borderColor: '#38bdf8',
-            backgroundColor: 'rgba(56, 189, 248, 0.1)',
-            borderWidth: 2,
-            tension: 0.3,
-            fill: true,
-            pointRadius: 3,
-            pointBackgroundColor: '#38bdf8'
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: {
-            legend: { display: true, position: 'top', labels: { color: 'white', font: { size: 12 } } },
-            tooltip: { 
-                callbacks: { label: (ctx) => `${ctx.raw.toFixed(1)}°C` },
-                backgroundColor: '#1f2937',
-                titleColor: '#fff'
-            }
-        },
-        scales: {
-            y: { 
-                title: { display: true, text: 'Temperatura (°C)', color: '#94a3b8' }, 
-                ticks: { color: '#94a3b8' },
-                min: -20,
-                max: 100,
-                grid: { color: '#1f2937' }
-            },
-            x: { 
-                title: { display: true, text: 'Horário', color: '#94a3b8' }, 
-                ticks: { color: '#94a3b8', maxRotation: 45, minRotation: 45 },
-                grid: { color: '#1f2937' }
-            }
+
+// Variáveis do temporizador
+let intervaloDesligar = null;
+let segundosRestantesDesligar = 0;
+let timerAtivo = false;
+
+// Função para formatar tempo (HH:MM:SS)
+function formatarTempoCompleto(segundosTotais) {
+    if (segundosTotais < 0) segundosTotais = 0;
+    const horas = Math.floor(segundosTotais / 3600);
+    const minutos = Math.floor((segundosTotais % 3600) / 60);
+    const segundos = segundosTotais % 60;
+    return `${horas.toString().padStart(2, '0')}:${minutos.toString().padStart(2, '0')}:${segundos.toString().padStart(2, '0')}`;
+}
+
+// Função para parar o timer (sem acionar o desligamento)
+function pararTimerApenas() {
+    if (intervaloDesligar) {
+        clearInterval(intervaloDesligar);
+        intervaloDesligar = null;
+    }
+    timerAtivo = false;
+}
+
+// Função para cancelar o timer (botão cancelar)
+function cancelarTimerDesligar() {
+    pararTimerApenas();
+    segundosRestantesDesligar = 0;
+    document.getElementById('timerDisplay').innerText = '--:--:--';
+    document.getElementById('timerStatus').innerHTML = '⏹️ Timer cancelado';
+    
+    // Limpa a mensagem após 2 segundos
+    setTimeout(() => {
+        if (!timerAtivo) {
+            document.getElementById('timerStatus').innerHTML = '';
         }
+    }, 2000);
+}
+
+// Função principal para iniciar o timer
+function iniciarTimerDesligar() {
+    // Pegar valores de horas e minutos
+    const horas = parseInt(document.getElementById('horasTimer').value) || 0;
+    const minutos = parseInt(document.getElementById('minutosTimer').value) || 0;
+    
+    // Validar se pelo menos um valor é positivo
+    if (horas === 0 && minutos === 0) {
+        document.getElementById('timerStatus').innerHTML = '⚠️ Defina pelo menos 1 hora ou 1 minuto';
+        setTimeout(() => {
+            if (!timerAtivo) document.getElementById('timerStatus').innerHTML = '';
+        }, 2000);
+        return;
+    }
+    
+    // Validar limites
+    if (horas > 23) {
+        document.getElementById('timerStatus').innerHTML = '⚠️ Horas não podem exceder 23';
+        return;
+    }
+    if (minutos > 59) {
+        document.getElementById('timerStatus').innerHTML = '⚠️ Minutos não podem exceder 59';
+        return;
+    }
+    
+    // Calcular segundos totais
+    segundosRestantesDesligar = (horas * 3600) + (minutos * 60);
+    
+    // Parar timer anterior se existir
+    pararTimerApenas();
+    
+    // Atualizar display inicial
+    document.getElementById('timerDisplay').innerText = formatarTempoCompleto(segundosRestantesDesligar);
+    document.getElementById('timerStatus').innerHTML = `⏳ Timer agendado para desligar em ${horas}h ${minutos}min`;
+    timerAtivo = true;
+    
+    // Iniciar novo intervalo
+    intervaloDesligar = setInterval(() => {
+        if (segundosRestantesDesligar <= 1) {
+            // TEMPO ESGOTADO - DESLIGAR A LÂMPADA!
+            pararTimerApenas();
+            
+            // DISPARAR O COMANDO DESLIGAR como se fosse um clique no botão
+            const botaoDesligar = document.querySelector('#QUARTINHO .btn-off');
+            if (botaoDesligar) {
+                botaoDesligar.click();  // Simula o clique no botão
+            } else {
+                // Fallback: chamar a função diretamente
+                enviarComando('QUARTINHO', 'OFF', null);
+            }
+            
+            // Atualizar interface do timer
+            document.getElementById('timerDisplay').innerText = '00:00:00';
+            document.getElementById('timerStatus').innerHTML = '✅ LÂMPADA DESLIGADA PELO TIMER!';
+            
+            // Limpar mensagem após 3 segundos
+            setTimeout(() => {
+                if (!timerAtivo) {
+                    document.getElementById('timerStatus').innerHTML = '';
+                    document.getElementById('timerDisplay').innerText = '--:--:--';
+                }
+            }, 3000);
+            
+        } else {
+            segundosRestantesDesligar--;
+            document.getElementById('timerDisplay').innerText = formatarTempoCompleto(segundosRestantesDesligar);
+        }
+    }, 1000);
+}
+
+// Observar quando a lâmpada for ligada/desligada manualmente
+function atualizarStatusTimer() {
+    const statusDiv = document.getElementById('status-QUARTINHO');
+    if (statusDiv && timerAtivo) {
+        const estaLigada = statusDiv.innerText.includes('LIGADA');
+        if (!estaLigada && segundosRestantesDesligar > 0) {
+            // Se alguém desligou manualmente, cancelamos o timer
+            cancelarTimerDesligar();
+            document.getElementById('timerStatus').innerHTML = '⏹️ Timer cancelado (desligamento manual)';
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INICIALIZAÇÃO DO GRÁFICO (CORRIGIDA - VERIFICA SE O CANVAS EXISTE)
+// ═══════════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.getElementById('grafico');
+    if (canvas) {
+        window.meuGrafico = new Chart(canvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Temperatura (°C)',
+                    data: [],
+                    borderColor: '#38bdf8',
+                    backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#38bdf8'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: true, position: 'top', labels: { color: 'white', font: { size: 12 } } },
+                    tooltip: { 
+                        callbacks: { label: (ctx) => `${ctx.raw.toFixed(1)}°C` },
+                        backgroundColor: '#1f2937',
+                        titleColor: '#fff'
+                    }
+                },
+                scales: {
+                    y: { 
+                        title: { display: true, text: 'Temperatura (°C)', color: '#94a3b8' }, 
+                        ticks: { color: '#94a3b8' },
+                        min: -20,
+                        max: 100,
+                        grid: { color: '#1f2937' }
+                    },
+                    x: { 
+                        title: { display: true, text: 'Horário', color: '#94a3b8' }, 
+                        ticks: { color: '#94a3b8', maxRotation: 45, minRotation: 45 },
+                        grid: { color: '#1f2937' }
+                    }
+                }
+            }
+        });
+        console.log("✅ Gráfico inicializado com sucesso!");
+    } else {
+        console.warn("⚠️ Canvas do gráfico não encontrado. Verifique se <canvas id='grafico'> existe na tela GERAL");
     }
 });
 
@@ -1121,6 +1124,9 @@ setTimeout(() => {
     carregarHistoricoSala();
     carregarHistoricoQuarto();
 }, 1000);
+
+// Monitora o timer a cada 500ms
+setInterval(atualizarStatusTimer, 500);
 
 console.log("✅ Painel IoT inicializado!");
 console.log(`📡 Backend configurado em: ${BACKEND_URL}`);
